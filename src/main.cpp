@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include "Functions.h"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
@@ -8,7 +9,7 @@
 #include <Wire.h>
 #endif
 
-#define OLED          // Con Display OLED
+// #define OLED          // Con Display OLED
 
 #ifdef OLED
 // OLED 0.96"
@@ -23,7 +24,7 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R2, /* reset=*/ U8X8_PIN_NONE);
 #define G1 8
 #define G2 9
 #define G3 10
-#define G4 11
+bool MoveEnabled = false;
 
 void setup() {
   // Set the pin as an input
@@ -33,18 +34,18 @@ void setup() {
   pinMode( 5, INPUT_PULLUP);  // Arduino Pin 5 = SW Limit Down
   pinMode( 6, INPUT_PULLUP);  // Arduino Pin 6 = SW Collision / Emergency
   pinMode( 7, INPUT_PULLUP);  // Arduino Pin 7 = SW Tube Position
+  pinMode( 11, OUTPUT);       // Arduino Pin 11 = Tube in Position
   
   // Set the Gx pin at LOW state
   digitalWrite(G1,LOW);
   digitalWrite(G2,LOW);
   digitalWrite(G3,LOW);
-  digitalWrite(G4,LOW);
+  digitalWrite(11,LOW);
 
   // Set the pin as an output
   pinMode(G1, OUTPUT);
   pinMode(G2, OUTPUT);
   pinMode(G3, OUTPUT);
-  pinMode(G4, OUTPUT);
 
   #ifdef OLED
   u8g2.begin();  // initialize with the I2C
@@ -67,14 +68,56 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  if (digitalRead(6) == HIGH) { // Emergency Stop
+    MoveEnabled = false;
+    Stop();
+  } else {
+    MoveEnabled = true;
+  }
+
+  if ((digitalRead(7) == HIGH) && MoveEnabled) { // Tube to Position Up
+    if (digitalRead(2) == HIGH) {
+      Stop();
+    }
+    if (digitalRead(3) == HIGH) {
+      MoveUp(128);
+    } else {
+      MoveUp(255);
+    } 
+  }
+
+  if ((digitalRead(7) == LOW) && MoveEnabled) { // Tube to Position Down
+    if (digitalRead(5) == HIGH) {
+      Stop();
+    }
+    if (digitalRead(4) == HIGH) {
+      MoveDown(128);
+    } else {
+      MoveDown(255);
+    }
+  }
 }
 
-// put function definitions here:
-void MoveUp(int x, int y) {
-  // code here
+// Functions Declarations
+void MoveUp(int speed) {
+  digitalWrite(G1, HIGH);
+  digitalWrite(G2, LOW);
+  analogWrite(G3, speed);
 } 
 
-void MoveDown(int x, int y) {
-  // code here
+void MoveDown(int speed) {
+  digitalWrite(G1, LOW);
+  digitalWrite(G2, HIGH);
+  analogWrite(G3, speed);
+}
+
+void Stop(void) {
+  digitalWrite(G1, LOW);
+  digitalWrite(G2, LOW);
+  analogWrite(G3, 0);
+  if (digitalRead(2) && digitalRead(3) || digitalRead(4) && digitalRead(5)){
+    digitalWrite(11, HIGH);
+  } else {
+    digitalWrite(11, LOW);
+  }
 }

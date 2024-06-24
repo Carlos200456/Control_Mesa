@@ -1,2 +1,5 @@
-void MoveUp(int x, int y);
-void MoveDown(int x, int y);  
+// Function prototypes
+void MoveUp(int);
+void MoveDown(int);  
+void Stop(void);
+
