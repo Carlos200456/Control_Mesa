@@ -21,9 +21,9 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R2, /* reset=*/ U8X8_PIN_NONE);
 #endif
 
 // Define the Output pins
-#define G1 8  // Motor Direction Up
-#define G2 9  // Motor Direction Down
-#define G3 10 // Motor Speed
+#define G1 9  // Motor Direction Up
+#define G2 10 // Motor Direction Down
+#define G3 11 // Motor Speed
 #define TR 13 // Tube Ready
 bool MoveEnabled = false;
 
@@ -34,7 +34,8 @@ void setup() {
   pinMode( 4, INPUT_PULLUP);  // Arduino Pin 4 = SW Pre Limit Down
   pinMode( 5, INPUT_PULLUP);  // Arduino Pin 5 = SW Limit Down
   pinMode( 6, INPUT_PULLUP);  // Arduino Pin 6 = SW Collision / Emergency
-  pinMode( 7, INPUT_PULLUP);  // Arduino Pin 7 = SW Tube Position
+  pinMode( 7, INPUT_PULLUP);  // Arduino Pin 7 = SW Tube Position Request
+  pinMode( 8, INPUT_PULLUP);  // Arduino Pin 8 = SW Table Vertical Up
   
   // Set the Gx pin at LOW state
   digitalWrite(G1,LOW);
@@ -69,7 +70,7 @@ void setup() {
 }
 
 void loop() {
-  if (digitalRead(6) == HIGH) { // Emergency Stop
+  if ((digitalRead(6) == LOW) && (digitalRead(8) == LOW)) { // Emergency Stop / Move Enabled
     MoveEnabled = false;
     Stop();
   } else {
@@ -97,6 +98,7 @@ void loop() {
       MoveDown(255);
     }
   }
+  delay(10);
 }
 
 // Functions Declarations
