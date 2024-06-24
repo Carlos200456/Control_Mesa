@@ -20,10 +20,11 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R2, /* reset=*/ U8X8_PIN_NONE);
 // U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ A5, /* data=*/ A4, /* CS=*/ 10, /* reset=*/ U8X8_PIN_NONE);
 #endif
 
-// Define the pins
-#define G1 8
-#define G2 9
-#define G3 10
+// Define the Output pins
+#define G1 8  // Motor Direction Up
+#define G2 9  // Motor Direction Down
+#define G3 10 // Motor Speed
+#define TR 13 // Tube Ready
 bool MoveEnabled = false;
 
 void setup() {
@@ -34,18 +35,18 @@ void setup() {
   pinMode( 5, INPUT_PULLUP);  // Arduino Pin 5 = SW Limit Down
   pinMode( 6, INPUT_PULLUP);  // Arduino Pin 6 = SW Collision / Emergency
   pinMode( 7, INPUT_PULLUP);  // Arduino Pin 7 = SW Tube Position
-  pinMode( 11, OUTPUT);       // Arduino Pin 11 = Tube in Position
   
   // Set the Gx pin at LOW state
   digitalWrite(G1,LOW);
   digitalWrite(G2,LOW);
   digitalWrite(G3,LOW);
-  digitalWrite(11,LOW);
+  digitalWrite(TR,LOW);
 
   // Set the pin as an output
   pinMode(G1, OUTPUT);
   pinMode(G2, OUTPUT);
   pinMode(G3, OUTPUT);
+  pinMode(TR, OUTPUT);  
 
   #ifdef OLED
   u8g2.begin();  // initialize with the I2C
@@ -115,9 +116,9 @@ void Stop(void) {
   digitalWrite(G1, LOW);
   digitalWrite(G2, LOW);
   analogWrite(G3, 0);
-  if (digitalRead(2) && digitalRead(3) || digitalRead(4) && digitalRead(5)){
-    digitalWrite(11, HIGH);
+  if ((digitalRead(2) && digitalRead(3)) || (digitalRead(4) && digitalRead(5))){
+    digitalWrite(TR, HIGH);
   } else {
-    digitalWrite(11, LOW);
+    digitalWrite(TR, LOW);
   }
 }
